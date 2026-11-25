@@ -1,0 +1,34 @@
+name: cola
+# Opens the upstream pull request for a step as soon as its id is appended to cola.txt on this
+# branch. The step branch itself is cut from upstream main and cannot carry this workflow.
+on:
+  push:
+    branches: ['cola']
+permissions:
+  contents: read
+jobs:
+  abre:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: cola
+      - name: Open the pull request upstream
+        env:
+          GH_TOKEN: ${{ secrets.UPSTREAM_PR_TOKEN }}
+          OWNER: ${{ github.repository_owner }}
+        run: |
+          STEP=$(tail -n 1 cola.txt | tr -d '[:space:]')
+          case "$STEP" in L-[a-z]*-[0-9]*) ;; *) echo bad step id; exit 1;; esac
+          FILE="lean/PEqualNP/Outside/$(echo "$STEP" | tr - _).lean"
+          printf '%s\n' \
+            "**Gap id** (from the desk, for example \`L-gct-101\`): $STEP" "" \
+            "**The one file this adds** (the \`file\` the desk gave you): \`$FILE\`" "" \
+            "**Agent used** (keep exactly one line):" "- Claude Code" "" \
+            "**Checklist**" \
+            "- [x] This pull request adds exactly one file and edits no other file." \
+            "- [x] The file proves the exact statement the desk gave me, unchanged." \
+            "- [x] No \`sorry\`, no new \`axiom\`, no \`native_decide\`." \
+            "- [x] It builds locally with the pinned toolchain." > body.md
+          gh pr create --repo open-goat/pequalnp-proofs --base main \
+            --head "$OWNER:$STEP" --title "$STEP" --body-file body.md
