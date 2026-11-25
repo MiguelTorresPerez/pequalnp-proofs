@@ -1,6 +1,7 @@
 name: abre-pr
 on:
-  create:
+  push:
+    branches: ['L-meta-*', 'L-gct-*']
   workflow_dispatch:
     inputs:
       step:
@@ -11,13 +12,13 @@ permissions:
   contents: read
 jobs:
   abre:
-    if: github.event_name == 'workflow_dispatch' || (github.event.ref_type == 'branch' && startsWith(github.event.ref, 'L-'))
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.event.created)
     runs-on: ubuntu-latest
     steps:
       - name: Open the pull request upstream
         env:
           GH_TOKEN: ${{ secrets.UPSTREAM_PR_TOKEN }}
-          STEP: ${{ inputs.step || github.event.ref }}
+          STEP: ${{ inputs.step || github.ref_name }}
         run: |
           case "$STEP" in L-[a-z]*-[0-9]*) ;; *) echo bad step id; exit 1;; esac
           FILE="lean/PEqualNP/Outside/$(echo "$STEP" | tr - _).lean"
