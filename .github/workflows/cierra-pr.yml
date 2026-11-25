@@ -1,0 +1,25 @@
+name: cierra-pr
+on:
+  workflow_dispatch:
+    inputs:
+      prs:
+        description: Space-separated upstream PR numbers opened by this account to close
+        required: true
+        type: string
+permissions:
+  contents: read
+jobs:
+  cierra:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Close our own late pull requests upstream
+        env:
+          GH_TOKEN: ${{ secrets.UPSTREAM_PR_TOKEN }}
+          PRS: ${{ inputs.prs }}
+        run: |
+          for n in $PRS; do
+            case "$n" in *[!0-9]*) echo "bad number $n"; exit 1;; esac
+            a=$(gh pr view "$n" --repo open-goat/pequalnp-proofs --json author --jq .author.login)
+            if [ "$a" != "${{ github.repository_owner }}" ]; then echo "skip $n: author $a"; continue; fi
+            gh pr close "$n" --repo open-goat/pequalnp-proofs --comment "Closing: another pull request for this step was opened before this one."
+          done
