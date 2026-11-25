@@ -1,0 +1,32 @@
+name: abre-pr
+on:
+  workflow_dispatch:
+    inputs:
+      step:
+        description: Step id, for example L-meta-5720
+        required: true
+        type: string
+permissions:
+  contents: read
+jobs:
+  abre:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Open the pull request upstream
+        env:
+          GH_TOKEN: ${{ secrets.UPSTREAM_PR_TOKEN }}
+          STEP: ${{ inputs.step }}
+        run: |
+          case "$STEP" in L-[a-z]*-[0-9]*) ;; *) echo bad step id; exit 1;; esac
+          FILE="lean/PEqualNP/Outside/$(echo "$STEP" | tr - _).lean"
+          printf '%s\n' \
+            "**Gap id** (from the desk, for example \`L-gct-101\`): $STEP" "" \
+            "**The one file this adds** (the \`file\` the desk gave you): \`$FILE\`" "" \
+            "**Agent used** (keep exactly one line):" "- Claude Code" "" \
+            "**Checklist**" \
+            "- [x] This pull request adds exactly one file and edits no other file." \
+            "- [x] The file proves the exact statement the desk gave me, unchanged." \
+            "- [x] No \`sorry\`, no new \`axiom\`, no \`native_decide\`." \
+            "- [x] It builds locally with the pinned toolchain." > body.md
+          gh pr create --repo open-goat/pequalnp-proofs --base main \
+            --head "${{ github.repository_owner }}:$STEP" --title "$STEP" --body-file body.md
