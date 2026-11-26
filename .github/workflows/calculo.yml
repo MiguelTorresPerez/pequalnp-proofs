@@ -21,7 +21,7 @@ jobs:
     timeout-minutes: 340
     strategy:
       fail-fast: false
-      max-parallel: 20
+      max-parallel: 12
       matrix:
         id: ${{ fromJSON(needs.plan.outputs.ids) }}
     env:
@@ -41,6 +41,11 @@ jobs:
           path: priv
           persist-credentials: false
       - run: pip install -q python-sat
+      - name: kissat
+        run: |
+          git clone -q --depth 1 --branch rel-4.0.4 https://github.com/arminbiere/kissat.git kissat
+          (cd kissat && ./configure >/dev/null && make -j4 >/dev/null 2>&1) || echo "kissat no compilo: se usa python-sat"
+          [ -x kissat/build/kissat ] && echo "KISSAT=$PWD/kissat/build/kissat" >> "$GITHUB_ENV" || true
       - name: run
         run: |
           CMD=$(python3 -c "import json;p=json.load(open('params.json'));print(p['cmd'])")
