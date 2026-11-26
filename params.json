@@ -1,1 +1,1 @@
-{"n": 1, "cmd": "echo prueba"}
+{"n": 20, "cmd": "python3 cubo.py 33"}

@@ -33,4 +33,6 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: res-${{ matrix.id }}
-          path: out.txt
+          path: |
+            out.txt
+            *.pkl
