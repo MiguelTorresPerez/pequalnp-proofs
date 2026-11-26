@@ -10,9 +10,8 @@ jobs:
   abre:
     runs-on: ubuntu-latest
     steps:
+      # checkout of the pushed commit itself (not the branch head): two pushes seconds apart must each read their own last line
       - uses: actions/checkout@v4
-        with:
-          ref: cola
       - name: Open the pull request upstream
         env:
           GH_TOKEN: ${{ secrets.UPSTREAM_PR_TOKEN }}
