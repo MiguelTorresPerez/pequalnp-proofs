@@ -1,0 +1,36 @@
+name: calculo
+on:
+  push:
+    branches: ['calculo']
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      ids: ${{ steps.p.outputs.ids }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: p
+        run: |
+          N=$(python3 -c "import json;print(json.load(open('params.json'))['n'])")
+          echo "ids=$(python3 -c "import json;print(json.dumps(list(range($N))))")" >> "$GITHUB_OUTPUT"
+  cubo:
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 340
+    strategy:
+      fail-fast: false
+      max-parallel: 20
+      matrix:
+        id: ${{ fromJSON(needs.plan.outputs.ids) }}
+    steps:
+      - uses: actions/checkout@v4
+      - run: pip install -q python-sat
+      - name: run
+        run: |
+          CMD=$(python3 -c "import json;p=json.load(open('params.json'));print(p['cmd'])")
+          N=$(python3 -c "import json;print(json.load(open('params.json'))['n'])")
+          eval "$CMD ${{ matrix.id }} $N" 2>&1 | tee out.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: res-${{ matrix.id }}
+          path: out.txt
