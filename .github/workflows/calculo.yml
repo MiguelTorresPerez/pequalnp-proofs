@@ -2,6 +2,8 @@ name: calculo
 on:
   push:
     branches: ['calculo']
+permissions:
+  contents: write
 jobs:
   plan:
     runs-on: ubuntu-latest
@@ -22,17 +24,46 @@ jobs:
       max-parallel: 20
       matrix:
         id: ${{ fromJSON(needs.plan.outputs.ids) }}
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      ONDA_RES: res/${{ github.run_id }}_${{ matrix.id }}.json
+      HAY_CODIGO: ${{ secrets.CODIGO_TOKEN != '' }}
     steps:
       - uses: actions/checkout@v4
+      # codigo privado (resolvedor y script de subida): no vive en este repo publico
+      - name: codigo privado
+        if: env.HAY_CODIGO == 'true'
+        uses: actions/checkout@v4
+        with:
+          repository: MiguelTorresPerez/polinomios-vs-barreras
+          ref: claude/project-thread-5vcbid
+          token: ${{ secrets.CODIGO_TOKEN }}
+          path: priv
+          persist-credentials: false
       - run: pip install -q python-sat
       - name: run
         run: |
           CMD=$(python3 -c "import json;p=json.load(open('params.json'));print(p['cmd'])")
           N=$(python3 -c "import json;print(json.load(open('params.json'))['n'])")
+          mkdir -p res
+          EP=""
+          # resultados parciales: cada 60 s, si res/ ha cambiado, se sube a la rama calculo-res
+          if [ -f priv/onda/empuja.sh ]; then bash priv/onda/empuja.sh loop 60 & EP=$!; fi
           eval "$CMD ${{ matrix.id }} $N" 2>&1 | tee out.txt
+          if [ -n "$EP" ]; then kill $EP 2>/dev/null || true; wait $EP 2>/dev/null || true; fi
+      - name: resultado a calculo-res
+        if: always()
+        run: |
+          [ -f priv/onda/empuja.sh ] || { echo "sin codigo privado: no se sube nada a calculo-res"; exit 0; }
+          mkdir -p res
+          # uso generico (el comando no escribe $ONDA_RES): se sube la cola de out.txt
+          [ -f "$ONDA_RES" ] || python3 -c "import json,os;L=open('out.txt',errors='replace').read().splitlines() if os.path.exists('out.txt') else [];json.dump({'job':int('${{ matrix.id }}'),'run':os.environ['GITHUB_RUN_ID'],'generico':True,'out_tail':L[-200:]},open(os.environ['ONDA_RES'],'w'))"
+          RES_WORK="$RUNNER_TEMP/res_fin" bash priv/onda/empuja.sh once
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: res-${{ matrix.id }}
           path: |
             out.txt
+            res/*.json
             *.pkl
