@@ -1,0 +1,1 @@
+{"job": 182, "N": 185, "run": "45853354952", "fin": false, "secs": 23.5, "res": [{"id": 20753, "familia": "B", "n": 5, "m": 5, "mask": 11766784, "K": 7, "estado": "NO", "gates": [], "out": null, "secs": 3.3, "via": "cad_u0_K"}, {"id": 20977, "familia": "B", "n": 4, "m": 5, "mask": 1048575, "K": 0, "estado": "NO", "gates": [], "out": null, "secs": 0.1, "via": "cad_u0_K"}]}
