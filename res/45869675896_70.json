@@ -1,0 +1,1 @@
+{"job": 70, "run": "45869675896", "generico": true, "out_tail": ["[   0.0s] trabajo 70/154: 3 tareas de 462; t_tarea=240 t_total=720 t_rapido=20 nucleos=4 -> res/45869675896_70.json", "[  20.0s] 23556 fam=B n=4x6 K=10 fase 1 (20s): TIMEOUT 20.0s"]}
