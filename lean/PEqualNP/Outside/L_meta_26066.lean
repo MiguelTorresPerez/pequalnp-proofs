@@ -1284,7 +1284,6 @@ theorem mono_shape2 {n : ℕ} (f : BF n) (B : ℕ) (hB : ∀ k : ℕ, R (nz f) k
   simp only [Set.mem_insert_iff, Set.mem_singleton_iff]
   exact h2
 
-/-! Part 8. The instance (generated). -/
 
 def F0 : BF 8 := fun x : Fin 8 → Bool => decide (∃ i < ([0, 4, 1, 5, 0, 6, 1, 6, 2, 6, 0, 7, 2, 7, 3, 7, 5, 7, 6, 7] : List ℕ).length / 2, (List.ofFn x).getD (([0, 4, 1, 5, 0, 6, 1, 6, 2, 6, 0, 7, 2, 7, 3, 7, 5, 7, 6, 7] : List ℕ).getD (2 * i) 0) false = true ∧ (List.ofFn x).getD (([0, 4, 1, 5, 0, 6, 1, 6, 2, 6, 0, 7, 2, 7, 3, 7, 5, 7, 6, 7] : List ℕ).getD (2 * i + 1) 0) false = true)
 
